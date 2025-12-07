@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { ComplianceApplication } from '../../types';
-import { ExternalLink, Trash2 } from 'lucide-react';
+import { ExternalLink, Trash2, Check, X as XIcon } from 'lucide-react';
 import CreateComplianceModal from './compliance/CreateComplianceModal';
 
 const ComplianceTab: React.FC = () => {
@@ -22,6 +22,14 @@ const ComplianceTab: React.FC = () => {
       if (confirm('Are you sure you want to delete this application?')) {
           setApplications(prev => prev.filter(app => app.id !== id));
       }
+  };
+
+  const handleApprove = (id: string) => {
+      setApplications(prev => prev.map(app => app.id === id ? { ...app, status: 'Approved' } : app));
+  };
+
+  const handleReject = (id: string) => {
+      setApplications(prev => prev.map(app => app.id === id ? { ...app, status: 'Rejected' } : app));
   };
 
   return (
@@ -53,7 +61,7 @@ const ComplianceTab: React.FC = () => {
                         <th className="px-6 py-3 whitespace-nowrap">Tax ID Number</th>
                         <th className="px-6 py-3 whitespace-nowrap">Status</th>
                         <th className="px-6 py-3 whitespace-nowrap">Date added</th>
-                        <th className="px-6 py-3 text-center">Delete</th>
+                        <th className="px-6 py-3 text-center">Actions</th>
                     </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
@@ -64,7 +72,7 @@ const ComplianceTab: React.FC = () => {
                                 <td className="px-6 py-4 text-gray-600">{app.firstName}</td>
                                 <td className="px-6 py-4 text-gray-600">{app.lastName}</td>
                                 <td className="px-6 py-4 text-gray-600">{app.companyName}</td>
-                                <td className="px-6 py-4 text-gray-600">{app.taxIdNumber}</td>
+                                <td className="px-6 py-4 text-gray-600 font-mono">{app.taxIdNumber}</td>
                                 <td className="px-6 py-4">
                                     <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${
                                         app.status === 'Approved' ? 'bg-green-100 text-green-700' :
@@ -76,12 +84,34 @@ const ComplianceTab: React.FC = () => {
                                 </td>
                                 <td className="px-6 py-4 text-gray-600">{app.dateAdded}</td>
                                 <td className="px-6 py-4 text-center">
-                                    <button 
-                                        onClick={() => handleDelete(app.id)}
-                                        className="text-gray-400 hover:text-red-600 transition-colors"
-                                    >
-                                        <Trash2 size={16} />
-                                    </button>
+                                    <div className="flex items-center justify-center gap-2">
+                                        {app.status === 'Pending' && (
+                                            <>
+                                                <button 
+                                                    onClick={() => handleApprove(app.id)}
+                                                    className="p-1.5 bg-green-50 text-green-600 hover:bg-green-100 rounded border border-green-200 transition-colors"
+                                                    title="Approve Application"
+                                                >
+                                                    <Check size={14} />
+                                                </button>
+                                                <button 
+                                                    onClick={() => handleReject(app.id)}
+                                                    className="p-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded border border-red-200 transition-colors"
+                                                    title="Reject Application"
+                                                >
+                                                    <XIcon size={14} />
+                                                </button>
+                                                <div className="w-[1px] h-4 bg-gray-200 mx-1"></div>
+                                            </>
+                                        )}
+                                        <button 
+                                            onClick={() => handleDelete(app.id)}
+                                            className="text-gray-400 hover:text-red-600 transition-colors p-1.5"
+                                            title="Delete"
+                                        >
+                                            <Trash2 size={16} />
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                         ))

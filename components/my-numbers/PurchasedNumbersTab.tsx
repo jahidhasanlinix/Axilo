@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { PhoneNumber } from '../../types';
 import { Search, X, Plus, Trash2, Phone, Loader2 } from 'lucide-react';
+import CreateComplianceModal from '../settings/compliance/CreateComplianceModal';
 
 const COUNTRIES = [
   { code: 'US', name: 'United States', prefix: '+1' },
@@ -19,6 +20,7 @@ interface PurchasedNumbersTabProps {
 const PurchasedNumbersTab: React.FC<PurchasedNumbersTabProps> = ({ numbers = [], setNumbers }) => {
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isComplianceModalOpen, setIsComplianceModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   
   // Form State
@@ -26,6 +28,9 @@ const PurchasedNumbersTab: React.FC<PurchasedNumbersTabProps> = ({ numbers = [],
   const [searchPattern, setSearchPattern] = useState('');
   const [availableNumbers, setAvailableNumbers] = useState<string[]>([]);
   const [selectedNumberToBuy, setSelectedNumberToBuy] = useState('');
+  
+  // Temp state to hold the number while filling compliance
+  const [pendingNumber, setPendingNumber] = useState<string | null>(null);
 
   const handleSearch = () => {
     setIsLoading(true);
@@ -39,27 +44,38 @@ const PurchasedNumbersTab: React.FC<PurchasedNumbersTabProps> = ({ numbers = [],
         const areaCode = searchPattern ? searchPattern : Math.floor(Math.random() * 900) + 100;
         const middle = Math.floor(Math.random() * 900) + 100;
         const end = Math.floor(Math.random() * 9000) + 1000;
-        return `${prefix} ${areaCode}-${middle}-${end}`;
+        return `${prefix} ${areaCode}${middle}${end}`;
       });
       setAvailableNumbers(generatedNumbers);
       setIsLoading(false);
     }, 1000);
   };
 
-  const handlePurchase = () => {
-    if (!selectedNumberToBuy || !setNumbers) return;
+  const handlePurchaseClick = () => {
+    if (!selectedNumberToBuy) return;
+    setPendingNumber(selectedNumberToBuy);
+    setIsModalOpen(false);
+    setIsComplianceModalOpen(true);
+  };
 
-    const newNumber: PhoneNumber = {
-      id: `pn_${Date.now()}`,
-      number: selectedNumberToBuy,
-      telephony: 'Twilio',
-      boughtOn: new Date().toLocaleDateString(),
-      renewsOn: new Date(new Date().setMonth(new Date().getMonth() + 1)).toLocaleDateString(),
-      monthlyRent: 1.15,
-      agentId: ''
-    };
-
-    setNumbers(prev => [...prev, newNumber]);
+  const handleComplianceSubmit = (data: any) => {
+    // Simulate successful compliance check and purchase
+    if (pendingNumber && setNumbers) {
+        const newNumber: PhoneNumber = {
+            id: `pn_${Date.now()}`,
+            number: pendingNumber,
+            telephony: 'Twilio',
+            boughtOn: new Date().toLocaleDateString(),
+            renewsOn: new Date(new Date().setMonth(new Date().getMonth() + 1)).toLocaleDateString(),
+            monthlyRent: 5.00,
+            agentId: ''
+        };
+        setNumbers(prev => [...prev, newNumber]);
+    }
+    
+    // Reset
+    setIsComplianceModalOpen(false);
+    setPendingNumber(null);
     handleCloseModal();
   };
 
@@ -68,6 +84,7 @@ const PurchasedNumbersTab: React.FC<PurchasedNumbersTabProps> = ({ numbers = [],
     setSearchPattern('');
     setAvailableNumbers([]);
     setSelectedNumberToBuy('');
+    setPendingNumber(null);
   };
 
   const handleDelete = (id: string) => {
@@ -81,6 +98,11 @@ const PurchasedNumbersTab: React.FC<PurchasedNumbersTabProps> = ({ numbers = [],
           setNumbers(prev => prev.map(n => n.id === id ? { ...n, agentId: '' } : n));
       }
   };
+
+  // Calculate renewal date for display
+  const renewalDate = new Date();
+  renewalDate.setFullYear(renewalDate.getFullYear() + 1); // Mocking 1 year or 1 month based on requirement, screenshots says 2026 so ~1 year or month logic.
+  const renewalDateString = renewalDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
 
   return (
     <div className="space-y-6">
@@ -172,12 +194,12 @@ const PurchasedNumbersTab: React.FC<PurchasedNumbersTabProps> = ({ numbers = [],
                 <h2 className="text-xl font-bold text-gray-900 mb-1">Buy phone number</h2>
                 <p className="text-sm text-gray-500 mb-6">Select your country and optionally add a pattern.</p>
 
-                <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-600 mb-6">
-                    For example, to search for phone numbers in the US starting with a 615 prefix, specify 615. Search results will be in the form "{selectedCountry.prefix} 615XXXXXX"
+                <div className="text-sm text-gray-600 mb-6 leading-relaxed">
+                    For example, to search for phone numbers in the US starting with a 615 prefix, specify 615. Search results will be in the form "{selectedCountry.prefix}615XXXXXX"
                 </div>
 
                 <div className="flex gap-3 mb-4">
-                    <div className="w-1/2">
+                    <div className="w-[180px]">
                         <select 
                             value={selectedCountry.code}
                             onChange={(e) => setSelectedCountry(COUNTRIES.find(c => c.code === e.target.value) || COUNTRIES[0])}
@@ -193,50 +215,60 @@ const PurchasedNumbersTab: React.FC<PurchasedNumbersTabProps> = ({ numbers = [],
                             type="text" 
                             placeholder="Pattern: 615"
                             value={searchPattern}
-                            onChange={(e) => setSearchPattern(e.target.value.replace(/\D/g, ''))} // Only numbers
+                            onChange={(e) => setSearchPattern(e.target.value.replace(/\D/g, ''))}
                             className="w-full px-3 py-2.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none text-sm"
                         />
                     </div>
                     <button 
                         onClick={handleSearch}
                         disabled={isLoading}
-                        className="px-4 py-2 bg-white border border-gray-300 rounded-md text-sm font-medium hover:bg-gray-50 flex items-center gap-2 min-w-[100px] justify-center"
+                        className="px-4 py-2 bg-white border border-gray-300 rounded-md text-sm font-medium hover:bg-gray-50 flex items-center gap-2 min-w-[90px] justify-center"
                     >
                         {isLoading ? <Loader2 size={16} className="animate-spin" /> : <><Search size={16} /> Search</>}
                     </button>
                 </div>
 
-                {availableNumbers.length > 0 && (
-                     <div className="mb-6 animate-in slide-in-from-top-2">
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">Available Numbers</label>
+                <div className="mb-6">
+                    {availableNumbers.length > 0 ? (
                         <select 
                             value={selectedNumberToBuy}
                             onChange={(e) => setSelectedNumberToBuy(e.target.value)}
-                            className="w-full px-3 py-2.5 border border-blue-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none text-sm bg-white cursor-pointer"
-                            size={5} // Show multiple options like a list
+                            className="w-full px-3 py-2.5 border border-blue-500 rounded-md focus:ring-2 focus:ring-blue-500 outline-none text-sm bg-white"
                         >
+                             <option value="" disabled>Select phone number</option>
                              {availableNumbers.map(num => (
-                                 <option key={num} value={num} className="py-2 px-2 hover:bg-blue-50 rounded cursor-pointer">{num}</option>
+                                 <option key={num} value={num}>{num}</option>
                              ))}
                         </select>
-                     </div>
-                )}
+                    ) : (
+                        <div className="w-full px-3 py-2.5 border border-gray-200 rounded-md text-sm text-gray-400 bg-gray-50 cursor-not-allowed">
+                            Select phone number
+                        </div>
+                    )}
+                </div>
 
-                {availableNumbers.length === 0 && !isLoading && (
-                    <div className="mb-6 h-10"></div>
-                )}
-
-                <div className="flex justify-end pt-4 border-t border-gray-100">
+                <div className="flex flex-col items-end pt-4 border-t border-gray-100">
                     <button 
-                        onClick={handlePurchase}
+                        onClick={handlePurchaseClick}
                         disabled={!selectedNumberToBuy}
-                        className="bg-blue-600 text-white px-6 py-2.5 rounded-md font-medium text-sm hover:bg-blue-700 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="bg-blue-600 text-white px-6 py-2.5 rounded-md font-medium text-sm hover:bg-blue-700 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed mb-3"
                     >
-                        Purchase number
+                        Purchase number for $5 / month
                     </button>
+                    <p className="text-xs text-gray-500">
+                        Your subscription will automatically renew on {renewalDateString}.
+                    </p>
                 </div>
             </div>
         </div>
+      )}
+
+      {/* Compliance Modal Triggered by Purchase */}
+      {isComplianceModalOpen && (
+          <CreateComplianceModal 
+            onClose={() => setIsComplianceModalOpen(false)}
+            onCreate={handleComplianceSubmit}
+          />
       )}
     </div>
   );

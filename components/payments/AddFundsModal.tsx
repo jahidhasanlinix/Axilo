@@ -199,10 +199,6 @@ const AddFundsModal: React.FC<AddFundsModalProps> = ({ onClose, onSuccess }) => 
                     <p className="text-sm text-gray-600">
                         Automatically <span className="text-blue-600 font-medium underline decoration-dotted">charge ${rechargeAmount}</span> when your balance drops <span className="text-blue-600 font-medium underline decoration-dotted">below ${thresholdAmount}</span>.
                     </p>
-
-                    <div className="p-4 bg-red-50 border border-red-200 rounded-md text-sm text-red-700">
-                        Auto-recharge is currently unavailable for cards issued in India due to RBI regulations.
-                    </div>
                 </div>
             )}
         </div>

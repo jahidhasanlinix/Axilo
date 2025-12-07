@@ -1,6 +1,6 @@
 
 import React, { useState, useRef } from 'react';
-import { X, Upload, Check, FileText, Loader2 } from 'lucide-react';
+import { X, Upload, Check, FileText, Loader2, Building2 } from 'lucide-react';
 import { ComplianceApplication } from '../../../types';
 
 interface CreateComplianceModalProps {
@@ -12,44 +12,76 @@ const CreateComplianceModal: React.FC<CreateComplianceModalProps> = ({ onClose, 
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [companyName, setCompanyName] = useState('');
-  const [gstNumber, setGstNumber] = useState('');
+  const [einNumber, setEinNumber] = useState('');
   
-  const [cinFile, setCinFile] = useState<File | null>(null);
-  const [gstFile, setGstFile] = useState<File | null>(null);
+  const [businessDoc, setBusinessDoc] = useState<File | null>(null);
   
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const cinInputRef = useRef<HTMLInputElement>(null);
-  const gstInputRef = useRef<HTMLInputElement>(null);
+  const docInputRef = useRef<HTMLInputElement>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!cinFile || !gstFile) {
-        alert("Please upload all required documents.");
+  const handleSubmit = async () => {
+    // Manual Validation
+    if (!firstName.trim() || !lastName.trim() || !companyName.trim() || !einNumber.trim()) {
+        alert("Please fill in all required fields (First Name, Last Name, Business Name, EIN).");
+        return;
+    }
+
+    // EIN Validation
+    // Matches standard 9-digit EIN format: XX-XXXXXXX
+    const einRegex = /^\d{2}-\d{7}$/;
+    if (!einRegex.test(einNumber)) {
+        alert("Invalid EIN format. Please enter a valid 9-digit Employer Identification Number in the format XX-XXXXXXX (e.g., 12-3456789).");
+        return;
+    }
+
+    if (!businessDoc) {
+        alert("Please upload the required business documentation (IRS Letter or Registration).");
         return;
     }
 
     setIsSubmitting(true);
+    
     // Simulate upload delay
     await new Promise(resolve => setTimeout(resolve, 1500));
 
-    onCreate({
-        firstName,
-        lastName,
-        applicationName: `${firstName} ${lastName}`,
-        companyName,
-        taxIdNumber: gstNumber,
-        documents: {
-            cin: cinFile.name,
-            gst: gstFile.name
-        }
-    });
-    
-    setIsSubmitting(false);
-    onClose();
+    try {
+        onCreate({
+            firstName,
+            lastName,
+            applicationName: `${firstName} ${lastName}`,
+            companyName,
+            taxIdNumber: einNumber,
+            documents: {
+                businessDoc: businessDoc.name
+            }
+        });
+        onClose();
+    } catch (error) {
+        console.error("Error creating application:", error);
+        alert("Failed to submit application. Please try again.");
+    } finally {
+        setIsSubmitting(false);
+    }
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, setFile: (f: File) => void) => {
+  const handleEinChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      let value = e.target.value;
+      // Allow only digits and hyphen
+      value = value.replace(/[^\d-]/g, '');
+      
+      // Auto-formatting: If user types the 2nd digit and next isn't a hyphen, add it
+      if (value.length === 2 && einNumber.length === 1) {
+          value += '-';
+      }
+      
+      // Prevent input longer than 10 chars (9 digits + 1 hyphen)
+      if (value.length > 10) return;
+
+      setEinNumber(value);
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       if (e.target.files && e.target.files[0]) {
           const file = e.target.files[0];
           if (file.size > 10 * 1024 * 1024) {
@@ -60,7 +92,7 @@ const CreateComplianceModal: React.FC<CreateComplianceModalProps> = ({ onClose, 
               alert("Only PDF files are supported");
               return;
           }
-          setFile(file);
+          setBusinessDoc(file);
       }
   };
 
@@ -71,126 +103,109 @@ const CreateComplianceModal: React.FC<CreateComplianceModalProps> = ({ onClose, 
           <X size={24} />
         </button>
 
-        <h2 className="text-xl font-bold text-gray-900 mb-1">Create a new Application</h2>
-        <p className="text-sm text-gray-500 mb-6">Create a new Compliance Application</p>
+        <div className="flex items-center gap-3 mb-1">
+            <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
+                <Building2 size={24} />
+            </div>
+            <div>
+                <h2 className="text-xl font-bold text-gray-900">Business Verification</h2>
+                <p className="text-sm text-gray-500">US Business Entity Registration (A2P 10DLC)</p>
+            </div>
+        </div>
+        
+        <div className="mt-6 mb-6 p-4 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-600">
+            To comply with US carrier regulations, we need to verify your business identity. Please provide your official IRS tax information.
+        </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="space-y-6">
             <div className="grid grid-cols-2 gap-4">
                 <div>
-                    <label className="block text-sm font-bold text-gray-900 mb-2">Your First Name</label>
+                    <label className="block text-sm font-bold text-gray-900 mb-2">First Name <span className="text-red-500">*</span></label>
                     <input 
                         type="text" 
                         value={firstName}
                         onChange={(e) => setFirstName(e.target.value)}
-                        placeholder="Enter your first name"
+                        placeholder="Authorized"
                         className="w-full px-3 py-2.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        required
                     />
                 </div>
                 <div>
-                    <label className="block text-sm font-bold text-gray-900 mb-2">Your Last Name</label>
+                    <label className="block text-sm font-bold text-gray-900 mb-2">Last Name <span className="text-red-500">*</span></label>
                     <input 
                         type="text" 
                         value={lastName}
                         onChange={(e) => setLastName(e.target.value)}
-                        placeholder="Enter your last name"
+                        placeholder="Representative"
                         className="w-full px-3 py-2.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        required
                     />
                 </div>
             </div>
 
             <div>
-                <label className="block text-sm font-bold text-gray-900 mb-2">Company Name (only Private Limited Company supported)</label>
+                <label className="block text-sm font-bold text-gray-900 mb-2">Legal Business Name <span className="text-red-500">*</span></label>
                 <input 
                     type="text" 
                     value={companyName}
                     onChange={(e) => setCompanyName(e.target.value)}
-                    placeholder="Well Labs Private Limited"
+                    placeholder="e.g. Acme Corp LLC"
                     className="w-full px-3 py-2.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    required
                 />
+                <p className="text-xs text-gray-500 mt-1">Must match exactly with your IRS documents.</p>
             </div>
 
             <div>
-                <label className="block text-sm font-bold text-gray-900 mb-2">CIN Certificate (only Private Limited Company supported)</label>
-                <div 
-                    onClick={() => cinInputRef.current?.click()}
-                    className={`border-2 border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors ${cinFile ? 'bg-blue-50 border-blue-200' : ''}`}
-                >
-                    {cinFile ? (
-                        <div className="flex items-center gap-2 text-blue-700">
-                            <FileText size={20} />
-                            <span className="font-medium text-sm">{cinFile.name}</span>
-                        </div>
-                    ) : (
-                        <>
-                            <Upload size={24} className="text-gray-400 mb-2" />
-                            <p className="text-sm text-gray-600">Drag and drop your file here, or <span className="text-blue-600">click to browse</span></p>
-                            <p className="text-xs text-gray-400 mt-1">Only PDF files up to 10 MB</p>
-                        </>
-                    )}
-                    <input 
-                        type="file" 
-                        ref={cinInputRef}
-                        onChange={(e) => handleFileChange(e, setCinFile)}
-                        accept=".pdf"
-                        className="hidden"
-                    />
-                </div>
-            </div>
-
-            <div>
-                <label className="block text-sm font-bold text-gray-900 mb-2">GST Number</label>
+                <label className="block text-sm font-bold text-gray-900 mb-2">Employer Identification Number (EIN) <span className="text-red-500">*</span></label>
                 <input 
                     type="text" 
-                    value={gstNumber}
-                    onChange={(e) => setGstNumber(e.target.value)}
-                    placeholder="ABCDEFGHIJKL1234"
-                    className="w-full px-3 py-2.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    required
+                    value={einNumber}
+                    onChange={handleEinChange}
+                    placeholder="XX-XXXXXXX"
+                    maxLength={10}
+                    className="w-full px-3 py-2.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono"
                 />
+                <p className="text-xs text-gray-500 mt-1">The 9-digit unique Tax ID assigned by the IRS. Format: 12-3456789</p>
             </div>
 
             <div>
-                <label className="block text-sm font-bold text-gray-900 mb-2">GST File</label>
+                <label className="block text-sm font-bold text-gray-900 mb-2">IRS Verification Letter / Business Registration <span className="text-red-500">*</span></label>
                 <div 
-                    onClick={() => gstInputRef.current?.click()}
-                    className={`border-2 border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors ${gstFile ? 'bg-blue-50 border-blue-200' : ''}`}
+                    onClick={() => docInputRef.current?.click()}
+                    className={`border-2 border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors ${businessDoc ? 'bg-blue-50 border-blue-200' : ''}`}
                 >
-                    {gstFile ? (
+                    {businessDoc ? (
                         <div className="flex items-center gap-2 text-blue-700">
                             <FileText size={20} />
-                            <span className="font-medium text-sm">{gstFile.name}</span>
+                            <span className="font-medium text-sm">{businessDoc.name}</span>
                         </div>
                     ) : (
                         <>
                             <Upload size={24} className="text-gray-400 mb-2" />
-                            <p className="text-sm text-gray-600">Drag and drop your file here, or <span className="text-blue-600">click to browse</span></p>
-                            <p className="text-xs text-gray-400 mt-1">Only PDF files up to 10 MB</p>
+                            <p className="text-sm text-gray-600">Upload CP 575 or 147C Letter</p>
+                            <p className="text-xs text-gray-400 mt-1">PDF format, max 10 MB</p>
                         </>
                     )}
                     <input 
                         type="file" 
-                        ref={gstInputRef}
-                        onChange={(e) => handleFileChange(e, setGstFile)}
+                        ref={docInputRef}
+                        onChange={handleFileChange}
                         accept=".pdf"
                         className="hidden"
                     />
                 </div>
             </div>
 
-            <div className="flex justify-end pt-2">
+            <div className="flex justify-end pt-4 border-t border-gray-100">
                 <button 
-                    type="submit"
+                    type="button"
+                    onClick={handleSubmit}
                     disabled={isSubmitting}
                     className="bg-blue-600 text-white px-6 py-2.5 rounded-md font-medium text-sm hover:bg-blue-700 transition-colors shadow-sm flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
                 >
                     {isSubmitting ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
-                    Create Application
+                    Submit Application
                 </button>
             </div>
-        </form>
+        </div>
       </div>
     </div>
   );

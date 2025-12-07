@@ -321,12 +321,11 @@ export interface ComplianceApplication {
   firstName: string;
   lastName: string;
   companyName: string;
-  taxIdNumber: string; // GST/PAN etc
+  taxIdNumber: string; // EIN for US, GST/PAN for others
   status: ComplianceStatus;
   dateAdded: string;
   documents: {
-    cin?: string;
-    gst?: string;
+    businessDoc?: string; // Generic business registration/IRS letter
   };
 }
 

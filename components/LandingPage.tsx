@@ -296,11 +296,11 @@ fetch('https://api.axilo.ai/call', options)
                 { icon: Code2, title: 'Custom API Triggers', desc: 'Call external APIs in real-time during a live conversation.' },
                 { icon: Users, title: 'Human-in-the-Loop', desc: 'Transfer call to a real agent instantly when needed.' },
                 { icon: Layers, title: 'Workflow Integration', desc: 'Easy to integrate with n8n, Make.com, Zapier, and other tools.' },
-                { icon: Globe, title: 'Multilingual', desc: 'Converse fluently in 10+ Indian and Foreign Languages.' },
+                { icon: Globe, title: 'Multilingual', desc: 'Converse fluently in 10+ Global Languages.' },
                 { icon: MessageSquare, title: 'Natural Conversations', desc: 'Agents understand interruptions, reply with <500ms latency.' },
                 { icon: Cpu, title: 'Connect Any Model', desc: 'Integrated with 20+ ASR, LLM, and TTS models.' },
                 { icon: Briefcase, title: 'Enterprise Plans', desc: 'Best-in-class pricing and Forward Deployed service.' },
-                { icon: ShieldCheck, title: '100% Data Privacy', desc: 'India / USA specific data residency, on-prep deployment.' },
+                { icon: ShieldCheck, title: '100% Data Privacy', desc: 'USA / EU specific data residency, on-prep deployment.' },
                 { icon: Shuffle, title: 'Model Switching', desc: 'Run each call with models suited best for your use case.' },
             ].map((feature, idx) => (
                 <div key={idx} className="bg-[#0F172A] p-6 rounded-xl border border-gray-800 hover:border-blue-500/50 transition-colors group">
