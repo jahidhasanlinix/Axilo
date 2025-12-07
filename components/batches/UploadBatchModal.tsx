@@ -25,15 +25,18 @@ const UploadBatchModal: React.FC<UploadBatchModalProps> = ({ agent, onClose, onC
   const handleSubmit = () => {
     if (!file) return;
 
-    // Simulate batch creation
+    // Simulate file parsing logic
+    const totalMock = Math.floor(Math.random() * 500) + 50; // Random number between 50 and 550
+    const validMock = totalMock - Math.floor(Math.random() * 10); // Slight difference for realism
+
     const newBatch: Partial<Batch> = {
       agentId: agent.id,
       fileName: file.name,
-      validContacts: Math.floor(Math.random() * 100) + 1, // Mock data
-      totalContacts: Math.floor(Math.random() * 100) + 10, // Mock data
-      createdAt: new Date().toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }),
-      workflow: 'Standard Call',
-      scheduledAt: scheduleType === 'schedule' ? `${scheduledDate} ${scheduledTime}` : undefined
+      validContacts: validMock,
+      totalContacts: totalMock,
+      workflow: 'Standard Call', // Could be dynamic in future
+      scheduledAt: scheduleType === 'schedule' ? `${scheduledDate} ${scheduledTime}` : undefined,
+      executionStatus: scheduleType === 'now' ? 'Running' : 'Pending'
     };
     
     onCreateBatch(newBatch);
@@ -66,6 +69,7 @@ const UploadBatchModal: React.FC<UploadBatchModalProps> = ({ agent, onClose, onC
                         <CheckCircle2 size={24} />
                     </div>
                     <p className="text-sm font-medium text-gray-900">{file.name}</p>
+                    <p className="text-xs text-gray-500 mt-1">{(file.size / 1024).toFixed(2)} KB</p>
                     <button onClick={() => setFile(null)} className="text-xs text-red-500 hover:underline mt-2">Remove file</button>
                 </div>
             ) : (
