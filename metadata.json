@@ -1,0 +1,7 @@
+{
+  "name": "Axilo Agent Builder",
+  "description": "A comprehensive AI agent setup platform powered by Google Gemini, featuring voice synthesis, prompt engineering, and agent configuration.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}

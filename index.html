@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Axilo Agent Builder</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/reactflow@11.10.4/dist/style.css" rel="stylesheet" />
+    <style>
+      body { font-family: 'Inter', sans-serif; background-color: #f9fafb; }
+      /* Custom scrollbar for webkit */
+      ::-webkit-scrollbar { width: 6px; height: 6px; }
+      ::-webkit-scrollbar-track { background: transparent; }
+      ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+      ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+      
+      /* React Flow Customizations */
+      .react-flow__node { border: none; }
+      .react-flow__handle { width: 8px; height: 8px; background: #94a3b8; }
+      .react-flow__handle-left { left: -4px; }
+      .react-flow__handle-right { right: -4px; }
+      .react-flow__controls { box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05); border: 1px solid #e2e8f0; border-radius: 0.5rem; overflow: hidden; }
+      .react-flow__controls-button { border-bottom: 1px solid #e2e8f0; background: white; }
+      .react-flow__controls-button:last-child { border-bottom: none; }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.31.0",
+    "react/": "https://aistudiocdn.com/react@^19.2.1/",
+    "react": "https://aistudiocdn.com/react@^19.2.1",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.1/",
+    "react-dom": "https://aistudiocdn.com/react-dom@^19.2.1",
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.556.0",
+    "reactflow": "https://esm.sh/reactflow@11.10.4?external=react,react-dom",
+    "@react-oauth/google": "https://esm.sh/@react-oauth/google@0.12.1?external=react,react-dom",
+    "jwt-decode": "https://esm.sh/jwt-decode@4.0.0"
+  }
+}
+</script>
+</head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+  </body>
+</html>
